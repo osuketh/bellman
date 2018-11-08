@@ -1,12 +1,12 @@
-extern crate bellman;
-extern crate pairing;
-extern crate rand;
+// extern crate bellman;
+// extern crate pairing;
+// extern crate rand;
 
 // For randomness (during paramgen and proof generation)
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, Rng, ChaChaRng};
 
 // For benchmarking
-use std::time::{Duration, Instant};
+// use std::time::{Duration, Instant};
 
 // Bring in some tools for using pairing-friendly curves
 use pairing::{
@@ -20,14 +20,14 @@ use pairing::bls12_381::{
 };
 
 // We'll use these interfaces to construct our circuit.
-use bellman::{
+use super::{
     Circuit,
     ConstraintSystem,
     SynthesisError
 };
 
 // We're going to use the Groth16 proving system.
-use bellman::groth16::{
+use super::groth16::{
     Proof,
     generate_random_parameters,
     prepare_verifying_key,
@@ -35,7 +35,7 @@ use bellman::groth16::{
     verify_proof,
 };
 
-const MIMC_ROUNDS: usize = 322;
+const MIMC_ROUNDS: usize = 322; 
 
 /// This is an implementation of MiMC, specifically a
 /// variant named `LongsightF322p3` for BLS12-381.
@@ -166,11 +166,12 @@ impl<'a, E: Engine> Circuit<E> for MiMCDemo<'a, E> {
     }
 }
 
-#[test]
-fn test_mimc() {
+// #[test]
+pub fn test_mimc() {
     // This may not be cryptographically safe, use
     // `OsRng` (for example) in production software.
-    let rng = &mut thread_rng();
+    // let rng = &mut thread_rng();
+    let rng = &mut ChaChaRng::new_unseeded();
 
     // Generate the MiMC round constants
     let constants = (0..MIMC_ROUNDS).map(|_| rng.gen()).collect::<Vec<_>>();
@@ -195,8 +196,8 @@ fn test_mimc() {
 
     // Let's benchmark stuff!
     const SAMPLES: u32 = 50;
-    let mut total_proving = Duration::new(0, 0);
-    let mut total_verifying = Duration::new(0, 0);
+    // let mut total_proving = Duration::new(0, 0);
+    // let mut total_verifying = Duration::new(0, 0);
 
     // Just a place to put the proof data, so we can
     // benchmark deserialization.
@@ -210,7 +211,7 @@ fn test_mimc() {
 
         proof_vec.truncate(0);
 
-        let start = Instant::now();
+        // let start = Instant::now();
         {
             // Create an instance of our circuit (with the
             // witness)
@@ -226,9 +227,9 @@ fn test_mimc() {
             proof.write(&mut proof_vec).unwrap();
         }
 
-        total_proving += start.elapsed();
+        // total_proving += start.elapsed();
 
-        let start = Instant::now();
+        // let start = Instant::now();
         let proof = Proof::read(&proof_vec[..]).unwrap();
         // Check the proof
         assert!(verify_proof(
@@ -236,16 +237,16 @@ fn test_mimc() {
             &proof,
             &[image]
         ).unwrap());
-        total_verifying += start.elapsed();
+        // total_verifying += start.elapsed();
     }
-    let proving_avg = total_proving / SAMPLES;
-    let proving_avg = proving_avg.subsec_nanos() as f64 / 1_000_000_000f64
-                      + (proving_avg.as_secs() as f64);
+    // let proving_avg = total_proving / SAMPLES;
+    // let proving_avg = proving_avg.subsec_nanos() as f64 / 1_000_000_000f64
+    //                   + (proving_avg.as_secs() as f64);
 
-    let verifying_avg = total_verifying / SAMPLES;
-    let verifying_avg = verifying_avg.subsec_nanos() as f64 / 1_000_000_000f64
-                      + (verifying_avg.as_secs() as f64);
+    // // let verifying_avg = total_verifying / SAMPLES;
+    // let verifying_avg = verifying_avg.subsec_nanos() as f64 / 1_000_000_000f64
+    //                   + (verifying_avg.as_secs() as f64);
 
-    println!("Average proving time: {:?} seconds", proving_avg);
-    println!("Average verifying time: {:?} seconds", verifying_avg);
+    // println!("Average proving time: {:?} seconds", proving_avg);
+    // println!("Average verifying time: {:?} seconds", verifying_avg);
 }

@@ -15,6 +15,9 @@ pub mod multicore;
 mod multiexp;
 pub mod domain;
 pub mod groth16;
+pub mod mimc;
+extern crate wasm_bindgen;
+use wasm_bindgen::prelude::*;
 
 use pairing::{Engine, Field};
 
@@ -425,4 +428,28 @@ impl<'cs, E: Engine, CS: ConstraintSystem<E>> ConstraintSystem<E> for &'cs mut C
     {
         (**self).get_root()
     }
+}
+
+#[wasm_bindgen]
+pub fn wasm_mimc() {
+    mimc::test_mimc();
+}
+
+
+#[test]
+
+fn main_mimc() {
+
+    mimc::test_mimc();    
+}
+
+#[cfg(test)]
+extern crate wasm_bindgen_test;
+#[cfg(test)]
+use wasm_bindgen_test::*;
+
+#[cfg(test)]
+#[wasm_bindgen_test]
+fn test_wasm() {
+    wasm_mimc();
 }
