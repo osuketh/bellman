@@ -435,11 +435,8 @@ pub fn wasm_mimc() {
     mimc::test_mimc();
 }
 
-
 #[test]
-
 fn main_mimc() {
-
     mimc::test_mimc();    
 }
 
